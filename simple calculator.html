@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calculator</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #212121;
+            font-family: 'Arial', sans-serif;
+            color: #ffffff;
+        }
+        
+        .outer-box {
+            background: #333333;
+            border: 2px solid #444444;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6), 0 -4px 8px rgba(0, 0, 0, 0.4) inset;
+            padding: 20px;
+            width: 360px;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: normal;
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 10px;
+        }
+        
+        .calculator {
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000000;
+            padding: 20px;
+            transform: rotateX(0) rotateY(0);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), 0 -2px 4px rgba(0, 0, 0, 0.3) inset;
+        }
+        
+        #display {
+            width: 100%;
+            height: 70px;
+            font-size: 28px;
+            text-align: right;
+            border: 2px solid #ffffff;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            padding-right: 10px;
+            background: #1c1c1c;
+            color: #ffffff;
+            word-wrap: break-word;
+            overflow-x: auto;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        }
+        
+        button {
+            padding: 15px;
+            font-size: 20px;
+            border: 1px solid #555555;
+            border-radius: 5px;
+            background: #444444;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transform: translateZ(0);
+        }
+        
+        button:hover {
+            background: #555555;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            background: #333333;
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .operator {
+            background: #666666;
+        }
+        
+        .operator:hover {
+            background: #777777;
+        }
+        
+        .operator:active {
+            background: #555555;
+        }
+        
+        .clear {
+            background: #d32f2f;
+        }
+        
+        .clear:hover {
+            background: #b71c1c;
+        }
+        
+        .clear:active {
+            background: #b71c1c;
+        }
+        
+        .sqrt {
+            background: #0288d1;
+        }
+        
+        .sqrt:hover {
+            background: #01579b;
+        }
+        
+        .sqrt:active {
+            background: #01579b;
+        }
+        
+        .single-clear {
+            background: #f57f17;
+        }
+        
+        .single-clear:hover {
+            background: #c6a700;
+        }
+        
+        .single-clear:active {
+            background: #c6a700;
+        }
+        
+        .ans {
+            background: #8e24aa;
+        }
+        
+        .ans:hover {
+            background: #6a1b9a;
+        }
+        
+        .ans:active {
+            background: #6a1b9a;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .wide {
+            grid-column: span 2;
+        }
+        
+        .zero-container {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="outer-box">
+        <h1>Simple Calculator</h1>
+        <div class="calculator">
+            <input id="display" type="text" readonly>
+
+            <div class="grid-container">
+                <button class="clear" onclick="clearAll()">C</button>
+                <button class="single-clear" onclick="clearSingle()">←</button>
+                <button class="sqrt" onclick="calculateSqrt()">√</button>
+                <button class="operator" onclick="setOperation('/')">/</button>
+
+                <button onclick="appendNumber('7')">7</button>
+                <button onclick="appendNumber('8')">8</button>
+                <button onclick="appendNumber('9')">9</button>
+                <button class="operator" onclick="setOperation('*')">*</button>
+
+                <button onclick="appendNumber('4')">4</button>
+                <button onclick="appendNumber('5')">5</button>
+                <button onclick="appendNumber('6')">6</button>
+                <button class="operator" onclick="setOperation('-')">-</button>
+
+                <button onclick="appendNumber('3')">3</button>
+                <button onclick="appendNumber('2')">2</button>
+                <button onclick="appendNumber('1')">1</button>
+                <button class="operator" onclick="setOperation('+')">+</button>
+
+                <div class="zero-container">
+                    <button onclick="appendNumber('0')">0</button>
+                    <button class="operator ans" onclick="storeAnswer()">Ans</button>
+                </div>
+                <button onclick="appendNumber('.')">.</button>
+                <button class="operator" onclick="calculate()">=</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = '';
+        let currentOperation = '';
+        let firstOperand = null;
+        let storedAnswer = null;
+        let display = document.getElementById('display');
+
+        function appendNumber(number) {
+            currentInput += number;
+            updateDisplay();
+        }
+
+        function setOperation(operation) {
+            if (currentInput === '' && currentOperation === '') return;
+            if (firstOperand === null) {
+                firstOperand = parseFloat(currentInput);
+            } else {
+                calculate();
+            }
+            currentOperation = operation;
+            currentInput = '';
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (currentInput === '' || currentOperation === '' || firstOperand === null) return;
+            let secondOperand = parseFloat(currentInput);
+            let result;
+            switch (currentOperation) {
+                case '+':
+                    result = firstOperand + secondOperand;
+                    break;
+                case '-':
+                    result = firstOperand - secondOperand;
+                    break;
+                case '*':
+                    result = firstOperand * secondOperand;
+                    break;
+                case '/':
+                    if (secondOperand === 0) {
+                        result = 'Error';
+                    } else {
+                        result = firstOperand / secondOperand;
+                    }
+                    break;
+            }
+            storedAnswer = result;
+            firstOperand = result;
+            currentInput = '';
+            currentOperation = '';
+            updateDisplay();
+        }
+
+        function calculateSqrt() {
+            if (currentInput === '') return;
+            let result = Math.sqrt(parseFloat(currentInput));
+            display.value = `√(${currentInput}) = ${formatDisplay(result)}`;
+            currentInput = result.toString();
+        }
+
+        function clearAll() {
+            currentInput = '';
+            currentOperation = '';
+            firstOperand = null;
+            display.value = '';
+        }
+
+        function clearSingle() {
+            currentInput = currentInput.slice(0, -1);
+            updateDisplay();
+        }
+
+        function storeAnswer() {
+            if (storedAnswer !== null) {
+                currentInput = storedAnswer.toString();
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            let operationDisplay = '';
+            if (currentOperation) {
+                operationDisplay = `${formatDisplay(firstOperand)} ${currentOperation} ${formatDisplay(currentInput)}`;
+            } else if (firstOperand !== null) {
+                operationDisplay = `${formatDisplay(firstOperand)} ${currentOperation} ${formatDisplay(currentInput)}`;
+            } else {
+                operationDisplay = formatDisplay(currentInput);
+            }
+            display.value = operationDisplay;
+            adjustDisplayAlignment();
+        }
+
+        function adjustDisplayAlignment() {
+            let displayValue = display.value;
+            if (displayValue.length > 20) {
+                display.style.textAlign = 'left';
+            } else {
+                display.style.textAlign = 'right';
+            }
+        }
+
+        function formatDisplay(value) {
+            if (typeof value === 'number') {
+                return value.toFixed(6).replace(/\.?0+$/, ''); // Remove trailing zeros
+            }
+            return value;
+        }
+    </script>
+
+</body>
+
+</html>
